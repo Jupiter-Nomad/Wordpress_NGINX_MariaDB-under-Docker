@@ -1,0 +1,26 @@
+version: '3.3'
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    environment:
+      DB_MYSQL_HOST: "db"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: "<dbuser"
+      DB_MYSQL_PASSWORD: "V3ctor32!!"
+      DB_MYSQL_NAME: "npm"
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+  db:
+    image: 'jc21/mariadb-aria:10.4'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'Th30nlyplac3form3!'
+      MYSQL_DATABASE: 'npm'
+      MYSQL_USER: 'dbuser'
+      MYSQL_PASSWORD: 'V3ctor32!!'
+    volumes:
+      - ./data/mysql:/var/lib/mysq
