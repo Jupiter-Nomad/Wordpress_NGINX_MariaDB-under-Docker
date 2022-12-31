@@ -1,26 +1,45 @@
-version: '3.3'
+version: "3.7"
+
 services:
-  app:
-    image: 'jc21/nginx-proxy-manager:latest'
-    ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
-    environment:
-      DB_MYSQL_HOST: "db"
-      DB_MYSQL_PORT: 3306
-      DB_MYSQL_USER: "<dbuser"
-      DB_MYSQL_PASSWORD: "V3ctor32!!"
-      DB_MYSQL_NAME: "npm"
-    volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
-  db:
-    image: 'jc21/mariadb-aria:10.4'
-    environment:
-      MYSQL_ROOT_PASSWORD: 'Th30nlyplac3form3!'
-      MYSQL_DATABASE: 'npm'
-      MYSQL_USER: 'dbuser'
-      MYSQL_PASSWORD: 'V3ctor32!!'
-    volumes:
-      - ./data/mysql:/var/lib/mysq
+
+    reverse-proxy:
+        image: "jwilder/nginx-proxy:latest"
+        container_name: "reverse-proxy"
+        volumes:
+            - "html:/usr/share/nginx/html"
+            - "dhparam:/etc/nginx/dhparam"
+            - "vhost:/etc/nginx/vhost.d"
+            - "certs:/etc/nginx/certs"
+            - "/run/docker.sock:/tmp/docker.sock:ro"
+        restart: "always"
+        networks: 
+            - "some-network"
+        ports:
+            - "80:80"
+            - "443:443"
+    letsencrypt:
+        image: "jrcs/letsencrypt-nginx-proxy-companion:latest"
+        container_name: "letsencrypt-helper"
+        volumes:
+            - "html:/usr/share/nginx/html"
+            - "dhparam:/etc/nginx/dhparam"
+            - "vhost:/etc/nginx/vhost.d"
+            - "certs:/etc/nginx/certs"
+            - "/run/docker.sock:/var/run/docker.sock:ro"
+        environment:
+            NGINX_PROXY_CONTAINER: "reverse-proxy"
+            DEFAULT_EMAIL: "user@domain.com"
+        restart: "always"
+        depends_on:
+            - "reverse-proxy"
+        networks: 
+            - "some-network"
+volumes:
+  certs:
+  html:
+  vhost:
+  dhparam:
+
+networks:
+  some-network:
+    external: true
