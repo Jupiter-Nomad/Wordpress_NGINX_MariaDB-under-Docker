@@ -1,45 +1,31 @@
 version: "3.7"
-
 services:
 
-    reverse-proxy:
-        image: "jwilder/nginx-proxy:latest"
-        container_name: "reverse-proxy"
+    db:
+        image: mariadb:10
+        container_name: db
+        restart: always
         volumes:
-            - "html:/usr/share/nginx/html"
-            - "dhparam:/etc/nginx/dhparam"
-            - "vhost:/etc/nginx/vhost.d"
-            - "certs:/etc/nginx/certs"
-            - "/run/docker.sock:/tmp/docker.sock:ro"
-        restart: "always"
-        networks: 
-            - "some-network"
-        ports:
-            - "80:80"
-            - "443:443"
-    letsencrypt:
-        image: "jrcs/letsencrypt-nginx-proxy-companion:latest"
-        container_name: "letsencrypt-helper"
-        volumes:
-            - "html:/usr/share/nginx/html"
-            - "dhparam:/etc/nginx/dhparam"
-            - "vhost:/etc/nginx/vhost.d"
-            - "certs:/etc/nginx/certs"
-            - "/run/docker.sock:/var/run/docker.sock:ro"
+            - db_data:/var/lib/mysql
         environment:
-            NGINX_PROXY_CONTAINER: "reverse-proxy"
-            DEFAULT_EMAIL: "user@domain.com"
-        restart: "always"
-        depends_on:
-            - "reverse-proxy"
-        networks: 
-            - "some-network"
-volumes:
-  certs:
-  html:
-  vhost:
-  dhparam:
+            MYSQL_DATABASE: "database"
+            MYSQL_USER: "user"
+            MYSQL_PASSWORD: "password"
+            MYSQL_ROOT_PASSWORD: "rootpassword"
 
-networks:
-  some-network:
-    external: true
+    wordpress:
+        image: wordpress:5
+        container_name: wordpress
+        restart: always
+        links: ['db']
+        depends_on: ['db']
+        ports: ['8080:80']
+        volumes:
+            - www:/var/www/html
+        environment:
+            WORDPRESS_DB_HOST: "db"
+            WORDPRESS_DB_NAME: "database"
+            WORDPRESS_DB_USER: "user"
+            WORDPRESS_DB_PASSWORD: "password"
+volumes:
+    db_data:
