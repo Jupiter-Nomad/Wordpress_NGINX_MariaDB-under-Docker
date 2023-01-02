@@ -16,4 +16,4 @@ WORDPRESS_DB_PASSWORD: "password"
 RE: nginx.conf
 You will want to adjust the following properties before composing:
 
-server_name 45.56.102.129
+server_name 
